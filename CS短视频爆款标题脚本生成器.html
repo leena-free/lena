@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CS短视频爆款标题&脚本生成器</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  background: #0f172a;
+  color: #e2e8f0;
+  min-height: 100vh;
+  padding: 20px;
+}
+.container { max-width: 860px; margin: 0 auto; }
+h1 { text-align: center; font-size: 22px; color: #818cf8; margin-bottom: 6px; padding-top: 10px; }
+.subtitle { text-align: center; color: #64748b; font-size: 12px; margin-bottom: 24px; }
+
+.tip-box { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 16px 18px; margin-bottom: 16px; }
+.tip-title { color: #f59e0b; font-size: 13px; font-weight: bold; margin-bottom: 10px; }
+.tip-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.tip-item { background: #0f172a; border-radius: 8px; padding: 10px 12px; font-size: 12px; color: #94a3b8; line-height: 1.6; }
+.tip-item strong { color: #818cf8; }
+
+.card { background: #1e293b; border-radius: 14px; padding: 20px; margin-bottom: 16px; border: 1px solid #334155; }
+.input-row { display: flex; gap: 10px; }
+.input-field { flex: 1; padding: 13px 16px; border: 2px solid #334155; border-radius: 10px; background: #0f172a; color: #f1f5f9; font-size: 14px; outline: none; transition: border-color 0.2s; }
+.input-field:focus { border-color: #6366f1; }
+.input-field::placeholder { color: #475569; }
+.btn { padding: 13px 24px; background: #6366f1; color: white; border: none; border-radius: 10px; font-size: 14px; cursor: pointer; white-space: nowrap; font-weight: bold; flex-shrink: 0; }
+.btn:hover { background: #4f46e5; }
+.btn:disabled { background: #334155; cursor: not-allowed; }
+
+.results-wrap { margin-top: 0; }
+
+.formula-card { background: #1e293b; border-radius: 14px; border: 1px solid #334155; margin-bottom: 14px; overflow: hidden; }
+.formula-header { background: #0f172a; padding: 13px 18px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid #334155; }
+.formula-num { width: 28px; height: 28px; background: #6366f1; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: bold; color: white; flex-shrink: 0; }
+.formula-info { flex: 1; }
+.formula-name { font-size: 14px; font-weight: bold; color: #f1f5f9; }
+.formula-meta { font-size: 11px; color: #64748b; margin-top: 2px; }
+.formula-tag { padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; flex-shrink: 0; }
+.tag-hot { background: #065f46; color: #6ee7b7; }
+.tag-normal { background: #334155; color: #94a3b8; }
+
+.variant-section { padding: 14px 18px; border-bottom: 1px solid #1e293b; }
+.variant-section:last-child { border-bottom: none; }
+
+.title-row { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; }
+.variant-badge { background: #6366f1; color: white; font-size: 11px; padding: 2px 8px; border-radius: 20px; flex-shrink: 0; margin-top: 2px; }
+.title-box { flex: 1; background: #0f172a; border: 1.5px solid #6366f1; border-radius: 8px; padding: 10px 14px; }
+.title-text { font-size: 14px; color: #f1f5f9; line-height: 1.5; margin-bottom: 8px; }
+.title-meta { display: flex; gap: 6px; flex-wrap: wrap; }
+.meta-chip { font-size: 11px; padding: 2px 8px; border-radius: 4px; background: #1e293b; color: #64748b; }
+.meta-chip.ok { color: #6ee7b7; }
+.meta-chip.warn { color: #fcd34d; }
+.meta-chip.bad { color: #f87171; }
+
+.script-label { font-size: 12px; color: #94a3b8; margin-bottom: 8px; }
+.script-box { background: #0f172a; border-radius: 10px; padding: 14px 16px; font-size: 13px; line-height: 2; color: #cbd5e1; white-space: pre-wrap; margin-bottom: 10px; }
+.copy-btn { padding: 7px 16px; background: #334155; color: #94a3b8; border: 1px solid #475569; border-radius: 7px; font-size: 12px; cursor: pointer; transition: all 0.2s; }
+.copy-btn:hover { background: #475569; color: white; }
+.copy-btn.copied { background: #065f46; color: #6ee7b7; border-color: #065f46; }
+
+.empty-state { text-align: center; padding: 50px 20px; color: #475569; }
+.empty-icon { font-size: 40px; margin-bottom: 12px; }
+.empty-text { font-size: 14px; line-height: 1.8; }
+.loading { text-align: center; padding: 40px; color: #64748b; font-size: 14px; }
+
+.history-bar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+.history-chip { background: #0f172a; border: 1px solid #334155; border-radius: 20px; padding: 5px 12px; font-size: 11px; color: #64748b; cursor: pointer; transition: all 0.2s; }
+.history-chip:hover { border-color: #6366f1; color: #818cf8; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>🔥 CS短视频爆款标题&脚本生成器</h1>
+  <p class="subtitle">基于6账号273条作品数据验证 · 三公式生成 · 4S人员即输即用</p>
+
+  <div class="tip-box">
+    <div class="tip-title">📌 爆款标题三公式（高播视频提问率 82.5%，口语词率 80%）</div>
+    <div class="tip-grid">
+      <div class="tip-item"><strong>公式一：同行提问型</strong> · 高播视频82.5%用此公式 · 图文优先 · 10:00-11:00发</div>
+      <div class="tip-item"><strong>公式二：吐槽+提问型</strong> · 先抛情绪再引导评论 · 1-3min视频 · 17:00-18:00发</div>
+      <div class="tip-item"><strong>公式三：圈层定位型</strong> · 精准锁定受众 · 图文均播6463 · 12:00-14:00发</div>
+      <div class="tip-item"><strong>通用铁律</strong> · 必须有口语词(同行们/大家/你们) · 必须有提问(?) · 20-40字</div>
+    </div>
+  </div>
+
+  <div id="historyBar" class="history-bar" style="display:none;"></div>
+
+  <div class="card">
+    <div class="input-row">
+      <input class="input-field" id="topicInput" type="text"
+        placeholder="输入主题，例如：门店获客难 / 想做联想百应 / 备件采购 / 淡季没生意..."
+        onkeydown="if(event.key==='Enter') window._generate()">
+      <button class="btn" id="genBtn" onclick="window._generate()">🚀 生成爆款</button>
+    </div>
+  </div>
+
+  <div id="resultsArea" class="results-wrap">
+    <div class="empty-state">
+      <div class="empty-icon">📱</div>
+      <div class="empty-text">输入主题，点击"生成爆款"<br>自动产出 3套公式 × 2个变体 = 6组标题+脚本</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ===== 数据定义 =====
+var PAIN_DB = {
+  default: ['客户来了不消费，只问价格就走人','网上推广烧钱没效果，客户留不住','备件采购没渠道，要么贵要么慢','店员难招难留，培训成本太高','同行打价格战，利润越压越薄','客户总觉得贵，信任建立难','淡旺季收入差距大，旺季忙死淡季慌死','不知道怎么做线上，获客全靠老客户介绍'],
+  '门店获客': ['线上推广烧钱没效果，客户留不住','新客户来了只问价格，体验完就走','老客户复购率低，没建立粘性','不知道怎么用抖音/视频号引流'],
+  '备件采购': ['备件渠道不稳定，关键时刻断货','采购价格不透明，被经销商层层加价','库存管理混乱，爆款配件经常缺','退货流程麻烦，资金占用严重'],
+  '转型加盟': ['不知道加盟后能带来多少增量','担心加盟费太高回本周期长','不熟悉联想百应的供应链优势','怕平台支持不到位，自己单打独斗'],
+  '淡季经营': ['淡季客流量骤降，收入撑不住成本','不知道淡季该做什么营销活动','店员闲着没事，人效太低','老客户复购率低，无法填补淡季缺口'],
+  '人员管理': ['技术师傅难招，培养好了又跳槽','店员积极性低，服务质量不稳定','岗位职责不清，出了问题互相推诿','绩效考核难落地，吃大锅饭']
+};
+var METRICS = ['月营收增长40%','客户转介绍率翻倍','月均订单量提升3倍','毛利率提升12个百分点','新客转化率从8%提到22%'];
+var EMOTIONS = ['说实话有点崩溃','真的是被坑怕了','无语了家人们','说出来都是泪','气到想砸桌子'];
+var STEPS = ['做好内容定位，坚持日更','对接平台资源，参加培训','优化话术，提高转化','建好老客户群，定期维护','用平台供应链降本增效'];
+
+// ===== 上下文生成 =====
+function mkCtx(topic) {
+  var t = topic.trim();
+  var keys = Object.keys(PAIN_DB);
+  var matched = null;
+  for (var i = 0; i < keys.length; i++) {
+    if (keys[i] !== 'default' && t.indexOf(keys[i]) !== -1) {
+      matched = keys[i];
+      break;
+    }
+  }
+  var pains = matched ? PAIN_DB[matched] : PAIN_DB.default;
+  var p1 = pains[Math.floor(Math.random() * pains.length)];
+  var p2 = p1;
+  while (p2 === p1) {
+    p2 = pains[Math.floor(Math.random() * pains.length)];
+  }
+  return {
+    target: t,
+    pain1: p1,
+    pain2: p2,
+    emotion: EMOTIONS[Math.floor(Math.random() * EMOTIONS.length)],
+    metric: METRICS[Math.floor(Math.random() * METRICS.length)],
+    step2: STEPS[Math.floor(Math.random() * STEPS.length)],
+    step3: STEPS[Math.floor(Math.random() * STEPS.length)]
+  };
+}
+
+// ===== 标题评分 =====
+function scoreTitle(title) {
+  var hasQ = /[？?]/.test(title);
+  var hasC = /(同行们|大家|你们|家人们|同行)/.test(title);
+  var lenOK = title.length >= 15 && title.length <= 44;
+  var s = (hasQ ? 1 : 0) + (hasC ? 1 : 0) + (lenOK ? 1 : 0);
+  var label = s >= 3 ? '达标' : s >= 2 ? '可优化' : '需修改';
+  return { hasQ: hasQ, hasC: hasC, lenOK: lenOK, s: s, label: label };
+}
+
+function chip(cls, txt) {
+  return '<span class="meta-chip ' + cls + '">' + txt + '</span>';
+}
+
+// ===== 复制功能 =====
+var SCRIPT_STORE = {};
+
+function doCopy(fid) {
+  var text = SCRIPT_STORE[fid];
+  if (!text) {
+    alert('脚本不存在，请重新生成');
+    return;
+  }
+  navigator.clipboard.writeText(text).then(function() {
+    var btn = document.getElementById('copy-btn-' + fid);
+    btn.textContent = '已复制';
+    btn.classList.add('copied');
+    setTimeout(function() {
+      btn.textContent = '复制脚本';
+      btn.classList.remove('copied');
+    }, 2000);
+  }).catch(function() {
+    // Fallback for older browsers
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    var btn = document.getElementById('copy-btn-' + fid);
+    btn.textContent = '已复制';
+    btn.classList.add('copied');
+    setTimeout(function() {
+      btn.textContent = '复制脚本';
+      btn.classList.remove('copied');
+    }, 2000);
+  });
+}
+
+// ===== 历史记录 =====
+function saveHistory(topic) {
+  var raw = localStorage.getItem('cs_h') || '[]';
+  var h = JSON.parse(raw);
+  h = [topic].concat(h.filter(function(x) { return x !== topic; })).slice(0, 10);
+  localStorage.setItem('cs_h', JSON.stringify(h));
+  renderHistory();
+}
+
+function renderHistory() {
+  var raw = localStorage.getItem('cs_h') || '[]';
+  var h = JSON.parse(raw);
+  if (!h.length) return;
+  var bar = document.getElementById('historyBar');
+  bar.style.display = 'flex';
+  var html = '';
+  for (var i = 0; i < h.length; i++) {
+    html += '<span class="history-chip" onclick="document.getElementById(\'topicInput\').value=\'' + h[i] + '\';window._generate()">' + h[i] + '</span>';
+  }
+  bar.innerHTML = html;
+}
+
+// ===== 渲染单个公式 =====
+function renderFormula(f, topic, ctx) {
+  var titles = f.titles(topic, ctx);
+  var rows = '';
+  for (var i = 0; i < titles.length; i++) {
+    var title = titles[i];
+    var sc = scoreTitle(title);
+    var script = f.script(title, topic, ctx);
+    var fid = f.id + '-' + i;
+
+    // 保存到STORE
+    SCRIPT_STORE[fid] = script;
+
+    var chips = '';
+    chips += chip(sc.hasQ ? 'ok' : 'bad', sc.hasQ ? '有提问' : '无提问');
+    chips += chip(sc.hasC ? 'ok' : 'warn', sc.hasC ? '有口语词' : '可加口语词');
+    chips += chip(sc.lenOK ? 'ok' : 'bad', title.length + '字');
+    chips += chip('', sc.s >= 3 ? '达标' : (sc.s >= 2 ? '可优化' : '需修改'));
+
+    rows += '<div class="variant-section">' +
+      '<div class="title-row">' +
+        '<span class="variant-badge">变体' + (i + 1) + '</span>' +
+        '<div class="title-box">' +
+          '<div class="title-text">' + title + '</div>' +
+          '<div class="title-meta">' + chips + '</div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="script-label">对应脚本（约30-45秒口播）</div>' +
+      '<div class="script-box" id="script-box-' + fid + '">' + script + '</div>' +
+      '<button class="copy-btn" id="copy-btn-' + fid + '" onclick="doCopy(\'' + fid + '\')">复制脚本</button>' +
+    '</div>';
+  }
+
+  return '<div class="formula-card">' +
+    '<div class="formula-header">' +
+      '<div class="formula-num">' + f.id + '</div>' +
+      '<div class="formula-info">' +
+        '<div class="formula-name">' + f.name + '</div>' +
+        '<div class="formula-meta">' + f.desc + ' · ' + f.meta.join(' · ') + '</div>' +
+      '</div>' +
+      '<span class="formula-tag ' + f.tagCls + '">' + f.tag + '</span>' +
+    '</div>' +
+    rows +
+  '</div>';
+}
+
+// ===== 主生成函数 =====
+function generateInner() {
+  var input = document.getElementById('topicInput');
+  var btn = document.getElementById('genBtn');
+  var topic = input.value.trim();
+
+  if (!topic) {
+    input.focus();
+    input.style.borderColor = '#ef4444';
+    setTimeout(function() { input.style.borderColor = '#334155'; }, 1500);
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = '生成中...';
+  document.getElementById('resultsArea').innerHTML = '<div class="loading">正在为"' + topic + '"生成爆款标题和脚本...</div>';
+
+  setTimeout(function() {
+    var ctx = mkCtx(topic);
+
+    // 公式1：同行提问型
+    var F1 = {
+      id: 1,
+      name: '同行提问型',
+      tag: '爆款率最高',
+      tagCls: 'tag-hot',
+      desc: '高播视频82.5%用此公式，119,055播案例验证',
+      meta: ['图文优先', '10:00-11:00'],
+      titles: function(topic, ctx) {
+        var p1 = ctx.pain1.split('，')[0];
+        return [
+          '同行们，做' + topic + '这么久，这个坑你们踩过吗？' + p1 + '？',
+          '电脑维修同行们，有没有跟我一样遇到' + topic + '的？我来吐槽一下' + p1 + '。'
+        ];
+      },
+      script: function(title, topic, ctx) {
+        var parts = title.split('？');
+        var q = (parts.length > 1 && parts[1]) ? parts[1] : '你们遇到这种情况一般怎么处理？';
+        return '【开场 0-3秒】（对准镜头，表情略带无奈）"同行们，今天来说说我做' + topic + '遇到的一个真实问题..."\n\n【痛点陈述 3-15秒】\n"就是' + ctx.pain1 + '。"\n"这个问题我之前一直没当回事，后来发现' + ctx.pain2 + '。"\n"不知道你们有没有遇到过，反正我当时是真的无语了。"\n\n【抛出问题 15-20秒】\n"所以我想问问大家：' + q + '"\n"评论区说说你们的办法，有好的我直接学！"\n\n【引导互动 20-30秒】\n"觉得有用的同行们，点个赞。"\n"关注我，持续分享' + topic + '的那些坑和经验。"\n"我们下期见！';
+      }
+    };
+
+    // 公式2：吐槽+提问型
+    var F2 = {
+      id: 2,
+      name: '吐槽+提问型',
+      tag: '互动率高',
+      tagCls: 'tag-normal',
+      desc: '先抛情绪再引导评论，评论区越热闹推流越多',
+      meta: ['1-3min视频', '17:00-18:00'],
+      titles: function(topic, ctx) {
+        return [
+          '做了这么多年' + topic + '，' + ctx.emotion + '，直到我遇到了这招！',
+          ctx.emotion + '！给做' + topic + '的同行们提个醒，这个坑千万别踩！'
+        ];
+      },
+      script: function(title, topic, ctx) {
+        return '【开场 0-5秒】（直接对着镜头，语气激动）\n"' + ctx.emotion + '！"\n"我做' + topic + '这么多年，今天必须跟大家吐槽一件事——"\n\n【情绪铺垫 5-20秒】\n"事情是这样的：' + ctx.pain1 + '"\n"当时我真的' + ctx.emotion + '。"\n"后来一个同行告诉我一个办法，试了之后' + ctx.pain2 + '。"\n\n【转折 20-25秒】\n"具体怎么做的我放在评论区了，觉得有用就点赞。"\n"评论区告诉我，你们有没有遇到过类似的情况？"\n\n【收尾 25-40秒】\n"觉得扎心的同行们，转发给做' + topic + '的朋友看看。"\n"关注我，每天一个' + topic + '实战技巧。';
+      }
+    };
+
+    // 公式3：圈层定位型
+    var F3 = {
+      id: 3,
+      name: '圈层定位型',
+      tag: '精准推流',
+      tagCls: 'tag-normal',
+      desc: '直接锁定目标受众，精准触达想加盟/想做联想百应的人',
+      meta: ['图文体裁均播6463', '12:00-14:00'],
+      titles: function(topic, ctx) {
+        return [
+          '想做联想百应的，你一定要了解这个' + topic + '，不然亏大了！',
+          '劝想做' + topic + '的同行们，先看完这个再决定！真实数据曝光'
+        ];
+      },
+      script: function(title, topic, ctx) {
+        return '【开场 0-3秒】（镜头展示门店或数据截图）\n"想做' + topic + '的同行们，今天说个真事。"\n\n【数据背书 3-12秒】\n"我们店做' + topic + '，用了这个方法之后，' + ctx.pain2 + '。"\n"这是我们上个月的' + ctx.metric + '，真实数据，不吹牛。"\n\n【具体做法 12-25秒】\n"第一步：' + ctx.pain1 + '"\n"第二步：' + ctx.step2 + '"\n"第三步：' + ctx.step3 + '"\n\n【引导行动 25-35秒】\n"想了解具体怎么操作的，评论区扣"1"，我私信发你。"\n"或者直接私信我，我们详细聊。"\n\n【收尾 35-45秒】\n"觉得有帮助的话，点赞+关注。"\n"我们下期见！';
+      }
+    };
+
+    var FORMULAS = [F1, F2, F3];
+    var html = '';
+    for (var fi = 0; fi < FORMULAS.length; fi++) {
+      html += renderFormula(FORMULAS[fi], topic, ctx);
+    }
+
+    document.getElementById('resultsArea').innerHTML = html;
+    btn.disabled = false;
+    btn.textContent = '🚀 生成爆款';
+    saveHistory(topic);
+    document.getElementById('resultsArea').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 400);
+}
+
+// 暴露到全局
+window._generate = generateInner;
+
+// 初始化
+renderHistory();
+document.getElementById('topicInput').focus();
+</script>
+</body>
+</html>
